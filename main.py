@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 '''Export playlists from Spotify to a file'''
-import requests
-from threading import Thread
-from spotifyclient import *
-import json
 import os
+from spotifyclient import SpotifyClient
+from utils import save_json
 
 
 # def get_playlist_tracks(playlist_id):
@@ -57,7 +55,8 @@ if __name__ == "__main__":
     client_secret = os.getenv('SPOTIFY_CLIENT_SECRET')
     client = SpotifyClient(client_id, client_secret)
     playlists = client.fetch_playlists('cakeisreallydeadnow')
-    print(playlists)
+
+    save_json(playlists, 'playlists.json')
 
     # with open('playlists.json', 'w', encoding='utf-8') as f:
     #             json.dump(playlists, f, indent=2)

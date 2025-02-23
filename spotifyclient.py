@@ -79,7 +79,7 @@ class SpotifyClient:
     def get_authorization(self, auth_url):
         '''Set up a temporary server to catch the OAuth callback'''
         logger.info("Setting up temporary server...")
-        httpd = socketserver.TCPServer(('', 8888), OAuthHandler)
+        httpd = socketserver.TCPServer(('127.0.0.1', 8888), OAuthHandler)
         server_thread = Thread(target=httpd.serve_forever)
         server_thread.daemon = True
 
@@ -123,7 +123,7 @@ class SpotifyClient:
         )
 
         with self.get_authorization(auth_url) as auth_result:
-            auth_code = auth_result
+            auth_code = self.auth_result
 
         auth_header = base64.urlsafe_b64encode(
             (self.client_id + ':' + self.client_secret).encode())
