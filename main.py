@@ -2,63 +2,24 @@
 '''Export playlists from Spotify to a file'''
 import os
 from spotifyclient import SpotifyClient
-from utils import save_json
-
-
-# def get_playlist_tracks(playlist_id):
-#     '''Fetch the tracks of a playlist'''
-#     endpoint = f'/playlists/{playlist_id}/tracks'
-
-#     try:
-#         if TOKEN == '':
-#             get_token()
-
-#         headers = {
-#             'Authorization': f'Bearer {TOKEN}'
-#         }
-#         r = requests.get(BASE_URL + endpoint, headers=headers, timeout=20)
-#         r.raise_for_status()
-#         tracks = r.json()
-
-#         if 'items' in tracks:
-#             for track in tracks['items']:
-#                 track_info = track['track']
-#                 print(f"Track: {track_info['name']}")
-#                 print(
-#                     f"Artist: {', '.join(artist['name'] for artist in track_info['artists'])}")
-#                 print(f"Album: {track_info['album']['name']}")
-#                 print()
-
-#     except requests.exceptions.HTTPError as err:
-#         print(f"Error: {err}")
-
-
-# def parse_playlists():
-#     '''Parse the playlists'''
-#     with open('playlists.json', 'r', encoding='utf-8') as f:
-#         playlists = json.load(f)
-
-#     my_playlists = [f for f in playlists['items']
-#                     if f['owner']['id'] == 'cakeisreallydeadnow']
-
-#     for playlist in my_playlists:
-#         print(f"Playlist: {playlist['name']}")
-#         print(f"ID: {playlist['id']}")
-#         print(f"Tracks: {playlist['tracks']['total']}")
-#         print(f"Owner: {playlist['owner']['display_name']}")
-#         get_playlist_tracks(playlist['id'])
-#         print()
-
+from utils import save_json, load_json, clean_playlist_data
 
 if __name__ == "__main__":
+    # Initialize the Spotify client
     client_id = os.getenv('SPOTIFY_CLIENT_ID')
     client_secret = os.getenv('SPOTIFY_CLIENT_SECRET')
     client = SpotifyClient(client_id, client_secret)
-    playlists = client.fetch_playlists('cakeisreallydeadnow')
+    USER_NAME = 'cakeisreallydeadnow'
+    # Fetch the playlists and store to a file
+    playlists = client.fetch_playlists(USER_NAME)
 
-    save_json(playlists, 'playlists.json')
+    cleaned_playlists = clean_playlist_data(playlists, USER_NAME)
 
-    # with open('playlists.json', 'w', encoding='utf-8') as f:
-    #             json.dump(playlists, f, indent=2)
-    #         print("Playlists saved to playlists.json")
-    # parse_playlists()
+    data = []
+    for playlist in cleaned_playlists:
+        data.append({
+            'name': playlist['name'],
+            'owner': playlist['owner'],
+            'tracks': client.get_playlist_tracks(playlist['id'])
+        })
+    save_json(data, 'playlist_data.json')

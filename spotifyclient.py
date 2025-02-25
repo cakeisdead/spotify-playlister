@@ -51,6 +51,38 @@ class SpotifyClient:
         logger.info("Checking if token is valid...")
         return self.token is not None
 
+    def get_playlist_tracks(self, playlist_id):
+        '''Fetch the tracks for the specified playlist'''
+        endpoint = f'/playlists/{playlist_id}/tracks'
+        tracks = []
+
+        try:
+            if not self.token_is_valid():
+                self.get_token()
+
+            headers = {
+                'Authorization': f'Bearer {self.token}'
+            }
+            r = requests.get(self.BASE_URL + endpoint,
+                             headers=headers, timeout=20)
+            r.raise_for_status()
+            tracks = r.json()
+
+            data = []
+
+            if 'items' in tracks:
+                for track in tracks['items']:
+                    track_info = track['track']
+                    data.append({
+                        'name': track_info['name'],
+                        'artist': ', '.join(artist['name'] for artist in track_info['artists'])
+                    })
+
+        except requests.exceptions.HTTPError as err:
+            print(f"Error: {err}")
+
+        return data
+
     def fetch_playlists(self, user_name):
         '''Fetch the playlists for the specified user'''
         endpoint = f'/users/{user_name}/playlists'
